@@ -1,0 +1,2884 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mibarbed - Sistema de Reservas</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style id="app-style">
+    :root {
+      --primary: #1a1a1a;
+      --secondary: #c19b76;
+      --light: #f8f9fa;
+      --dark: #343a40;
+      --success: #28a745;
+      --danger: #dc3545;
+      --warning: #ffc107;
+      --info: #17a2b8;
+    }
+    
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f5f5f5;
+      color: var(--dark);
+    }
+    
+    /* Sidebar collapse behavior */
+    .main-sidebar {
+       transition: transform 0.28s ease, visibility 0.28s ease;
+       will-change: transform;
+     }
+     
+     .main-sidebar.collapsed {
+       transform: translateX(-105%);
+       visibility: hidden;
+     }
+
+     .main-content {
+       transition: margin-left 0.28s ease;
+     }
+
+     /* when sidebar is collapsed, content should use full width */
+     .main-content.sidebar-collapsed {
+       margin-left: 0 !important;
+       padding-left: 15px;
+       padding-right: 15px;
+     }
+    
+    .auth-container {
+      background: linear-gradient(135deg, rgba(0,0,0,0.8) 0%, rgba(45,45,45,0.9) 100%), url('https://cdn.pixabay.com/photo/2020/05/24/02/00/barber-shop-5212059_1280.jpg');
+      background-size: cover;
+      background-position: center;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .auth-form {
+      background-color: rgba(255, 255, 255, 0.95);
+      border-radius: 10px;
+      padding: 30px;
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      max-width: 400px;
+    }
+    
+    .auth-logo {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+    
+    .auth-logo h1 {
+      color: var(--secondary);
+      font-weight: 700;
+      font-size: 2.5rem;
+      margin-bottom: 0;
+    }
+    
+    .auth-logo p {
+      font-style: italic;
+      color: var(--dark);
+    }
+    
+    .btn-primary {
+      background-color: var(--secondary);
+      border-color: var(--secondary);
+      color: white;
+      font-weight: 600;
+    }
+    
+    .btn-primary:hover {
+      background-color: #a37e5c;
+      border-color: #a37e5c;
+      color: white;
+    }
+    
+    .btn-outline-danger {
+      color: var(--danger);
+      border-color: var(--danger);
+    }
+
+    .btn-outline-danger:hover {
+      background-color: var(--danger);
+      color: white;
+    }
+    
+    .navbar-brand {
+      color: var(--secondary) !important;
+      font-weight: 700;
+      font-size: 1.8rem;
+    }
+    
+    .main-sidebar {
+      background-color: var(--primary);
+      color: white;
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 250px;
+      z-index: 1000;
+      padding-top: 70px;
+      overflow-y: auto;
+    }
+    
+    .main-sidebar .nav-link {
+      color: rgba(255, 255, 255, 0.8);
+      border-left: 4px solid transparent;
+      padding: 12px 20px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .main-sidebar .nav-link:hover,
+    .main-sidebar .nav-link.active {
+      color: white;
+      border-left-color: var(--secondary);
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .main-sidebar .nav-link i {
+      margin-right: 10px;
+      width: 20px;
+      text-align: center;
+    }
+    
+    .main-content {
+      margin-left: 250px;
+      padding: 70px 25px 25px;
+      min-height: 100vh;
+    }
+    
+    .navbar {
+      background-color: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .page-section {
+      display: none;
+    }
+    
+    .page-section.active {
+      display: block;
+      animation: fadeIn 0.3s ease-in;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      border-radius: 15px;
+      color: white;
+      padding: 25px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 200px;
+      height: 200px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 50%;
+    }
+
+    .stat-card.appointments {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .stat-card.revenue {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    .stat-card.clients {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+
+    .stat-card.services {
+      background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    }
+
+    .stat-card-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      opacity: 0.9;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 600;
+    }
+
+    .stat-value {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+
+    .stat-change {
+      font-size: 0.85rem;
+      opacity: 0.85;
+    }
+
+    .stat-icon {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 2.5rem;
+      opacity: 0.2;
+    }
+
+    .chart-container {
+      background: white;
+      border-radius: 15px;
+      padding: 25px;
+      box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+      margin-bottom: 25px;
+    }
+
+    .chart-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 20px;
+      border-bottom: 2px solid var(--secondary);
+      padding-bottom: 15px;
+    }
+
+    .chart-wrapper {
+      position: relative;
+      height: 300px;
+      margin-bottom: 20px;
+    }
+
+    .barber-card {
+      border: none;
+      border-radius: 15px;
+      overflow: hidden;
+      transition: all 0.3s;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      background-color: white;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .barber-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 25px rgba(193, 155, 118, 0.3);
+    }
+
+    .barber-image {
+      width: 100%;
+      height: 280px;
+      object-fit: cover;
+      background: linear-gradient(135deg, var(--secondary), #8b6f47);
+    }
+
+    .barber-info {
+      padding: 20px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .barber-name {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 5px;
+    }
+
+    .barber-phone {
+      color: #666;
+      font-size: 0.8rem;
+      margin-bottom: 12px;
+    }
+
+    .barber-rating {
+      color: #ffc107;
+      font-size: 0.85rem;
+      margin-bottom: 12px;
+    }
+
+    .barber-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: auto;
+    }
+
+    .barber-actions button {
+      flex: 1;
+      font-size: 0.75rem;
+      padding: 8px 12px;
+    }
+
+    .barber-badge {
+      display: inline-block;
+      background-color: var(--secondary);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-bottom: 10px;
+      width: fit-content;
+    }
+    
+    .booking-steps {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 30px;
+      position: relative;
+    }
+
+    .booking-steps::before {
+      content: '';
+      position: absolute;
+      top: 20px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background-color: #e9ecef;
+      z-index: 0;
+    }
+    
+    .booking-step {
+      flex: 1;
+      text-align: center;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .booking-step .step-number {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: #e9ecef;
+      color: var(--dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      margin: 0 auto 10px;
+      border: 3px solid white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .booking-step.active .step-number {
+      background-color: var(--secondary);
+      color: white;
+    }
+    
+    .booking-step.completed .step-number {
+      background-color: var(--success);
+      color: white;
+    }
+
+    .service-checkbox {
+      padding: 15px;
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+
+    .service-checkbox:hover {
+      border-color: var(--secondary);
+      background-color: rgba(193, 155, 118, 0.05);
+    }
+
+    .service-checkbox input:checked {
+      accent-color: var(--secondary);
+    }
+
+    .calendar-container {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .calendar-header h5 {
+      margin: 0;
+      color: var(--primary);
+      flex: 1;
+      text-align: center;
+    }
+
+    .calendar-nav-btn {
+      background: none;
+      border: none;
+      color: var(--secondary);
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 5px 10px;
+      transition: color 0.3s;
+    }
+
+    .calendar-nav-btn:hover {
+      color: #a37e5c;
+    }
+
+    .calendar-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+      margin-bottom: 10px;
+    }
+
+    .calendar-weekday {
+      text-align: center;
+      font-weight: 600;
+      color: var(--secondary);
+      font-size: 0.85rem;
+      padding: 5px;
+    }
+
+    .calendar-days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 5px;
+    }
+
+    .calendar-day {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid #e9ecef;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.3s;
+      background: white;
+      color: var(--dark);
+      font-weight: 500;
+    }
+
+    .calendar-day:hover:not(.disabled):not(.other-month) {
+      background-color: rgba(193, 155, 118, 0.1);
+      border-color: var(--secondary);
+    }
+
+    .calendar-day.selected {
+      background-color: var(--secondary);
+      color: white;
+      border-color: var(--secondary);
+      font-weight: 600;
+    }
+
+    .calendar-day.today {
+      border: 2px solid var(--secondary);
+    }
+
+    .calendar-day.disabled,
+    .calendar-day.other-month {
+      background-color: #f5f5f5;
+      color: #ccc;
+      cursor: not-allowed;
+    }
+    
+    .toast-container {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 9999;
+    }
+    
+    .toast-message {
+      background-color: white;
+      padding: 15px 20px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: slideIn 0.3s ease-out;
+      max-width: 350px;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    
+    .toast-message.success {
+      border-left: 4px solid var(--success);
+    }
+    
+    .toast-message.error {
+      border-left: 4px solid var(--danger);
+    }
+    
+    .toast-message.info {
+      border-left: 4px solid #17a2b8;
+    }
+
+    .card {
+      border: none;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .card-body {
+      padding: 20px;
+    }
+
+    .table {
+      background-color: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      margin-bottom: 0;
+    }
+
+    .table thead {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    .table tbody tr:hover {
+      background-color: #f8f9fa;
+    }
+
+    .btn-outline-primary {
+      color: var(--secondary);
+      border-color: var(--secondary);
+    }
+
+    .btn-outline-primary:hover {
+      background-color: var(--secondary);
+      border-color: var(--secondary);
+      color: white;
+    }
+
+    .stat-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .confirmation-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 99999;
+      animation: fadeIn 0.3s ease-in;
+    }
+
+    .confirmation-card {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      max-width: 550px;
+      width: 95%;
+      box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+      animation: slideUp 0.3s ease-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(30px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .confirmation-card h4 {
+      color: var(--success);
+      margin-bottom: 15px;
+      font-weight: 700;
+    }
+
+    .confirmation-card .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .confirmation-card .detail-label {
+      font-weight: 600;
+      color: var(--primary);
+      flex: 0 0 40%;
+    }
+
+    .confirmation-card .detail-value {
+      color: #666;
+      flex: 1;
+      text-align: right;
+    }
+
+    @media (max-width: 768px) {
+      .main-sidebar {
+        width: 200px;
+      }
+      .main-content {
+        margin-left: 200px;
+        padding: 70px 15px 15px;
+      }
+      .barber-card {
+        margin-bottom: 20px;
+      }
+      .stat-value {
+        font-size: 2rem;
+      }
+      .confirmation-card {
+        padding: 20px;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .main-sidebar {
+        display: none;
+      }
+      .main-content {
+        margin-left: 0;
+        padding: 60px 10px 10px;
+      }
+      .auth-form {
+        padding: 20px;
+        margin: 10px;
+      }
+      .confirmation-card {
+        width: 90%;
+        padding: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Login Screen -->
+  <div id="loginScreen" class="auth-container">
+    <div class="auth-form">
+      <div class="auth-logo">
+        <h1><i class="fas fa-cut"></i> Mibarbed</h1>
+        <p>Sistema de Reservas</p>
+      </div>
+      <form id="loginForm">
+        <div class="mb-3">
+          <label for="adminPassword" class="form-label">Contraseña Admin</label>
+          <input type="password" class="form-control" id="adminPassword" placeholder="Ingresa contraseña">
+        </div>
+        <button type="button" class="btn btn-primary w-100 mb-2" id="adminAccess">
+          <i class="fas fa-lock"></i> Acceso Admin
+        </button>
+        <button type="button" class="btn btn-outline-primary w-100" id="clientAccess">
+          <i class="fas fa-user"></i> Ingresar como Cliente
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Main Application -->
+  <div id="mainApp" style="display: none;">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top">
+      <div class="container-fluid">
+        <div class="d-flex align-items-center">
+          <button class="btn btn-outline-primary me-2" id="sidebarToggle" aria-label="Alternar menú">
+            <i class="fas fa-bars"></i>
+          </button>
+          <span class="navbar-brand"><i class="fas fa-cut"></i> Mibarbed</span>
+        </div>
+        <button class="btn btn-outline-danger" id="logoutBtn">
+          <i class="fas fa-sign-out-alt"></i> Salir
+        </button>
+      </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <div class="main-sidebar" id="mainSidebar">
+      <nav class="nav flex-column" id="sidebarNav">
+        <a class="nav-link active" href="#" data-page="dashboard">
+          <i class="fas fa-chart-line"></i> Dashboard
+        </a>
+        <a class="nav-link" href="#" data-page="appointments">
+          <i class="fas fa-calendar"></i> Citas
+        </a>
+        <a class="nav-link" href="#" data-page="barbers">
+          <i class="fas fa-users"></i> Personal
+        </a>
+        <a class="nav-link" href="#" data-page="services">
+          <i class="fas fa-cut"></i> Servicios
+        </a>
+        <a class="nav-link" href="#" data-page="clients">
+          <i class="fas fa-users-circle"></i> Clientes
+        </a>
+      </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Dashboard -->
+      <div id="dashboard" class="page-section active">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h2><i class="fas fa-chart-line"></i> Dashboard</h2>
+          <small class="text-muted" id="dashboardDate"></small>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stat-row">
+          <div class="stat-card appointments">
+            <div class="stat-icon"><i class="fas fa-calendar"></i></div>
+            <div class="stat-card-content">
+              <div class="stat-label">Citas Confirmadas</div>
+              <div class="stat-value" id="totalAppointments">0</div>
+              <div class="stat-change"><i class="fas fa-arrow-up"></i> Hoy: <span id="todayAppointments">0</span></div>
+            </div>
+          </div>
+
+          <div class="stat-card revenue">
+            <div class="stat-icon"><i class="fas fa-dollar-sign"></i></div>
+            <div class="stat-card-content">
+              <div class="stat-label">Ingresos Totales</div>
+              <div class="stat-value">$<span id="totalRevenue">0</span></div>
+              <div class="stat-change" id="revenueChange"><i class="fas fa-arrow-up"></i> Mes actual</div>
+            </div>
+          </div>
+
+          <div class="stat-card clients">
+            <div class="stat-icon"><i class="fas fa-users"></i></div>
+            <div class="stat-card-content">
+              <div class="stat-label">Clientes Registrados</div>
+              <div class="stat-value" id="totalClients">0</div>
+              <div class="stat-change" id="clientsChange"><i class="fas fa-arrow-up"></i> Este mes</div>
+            </div>
+          </div>
+
+          <div class="stat-card services">
+            <div class="stat-icon"><i class="fas fa-cut"></i></div>
+            <div class="stat-card-content">
+              <div class="stat-label">Personal Activo</div>
+              <div class="stat-value" id="activeStaff">0</div>
+              <div class="stat-change"><span id="staffBreakdown">-</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="row">
+          <div class="col-lg-6">
+            <div class="chart-container">
+              <div class="chart-title">Citas por Barbero</div>
+              <div class="chart-wrapper">
+                <canvas id="appointmentsByBarberChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-6">
+            <div class="chart-container">
+              <div class="chart-title">Servicios Más Solicitados</div>
+              <div class="chart-wrapper">
+                <canvas id="topServicesChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-lg-6">
+            <div class="chart-container">
+              <div class="chart-title">Citas por Día (Última Semana)</div>
+              <div class="chart-wrapper">
+                <canvas id="appointmentsWeekChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-6">
+            <div class="chart-container">
+              <div class="chart-title">Ingresos Mensuales</div>
+              <div class="chart-wrapper">
+                <canvas id="revenueMonthChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Appointments -->
+        <div class="chart-container">
+          <div class="chart-title">Últimas Citas Agendadas</div>
+          <div class="table-responsive">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Cliente</th>
+                  <th>Personal</th>
+                  <th>Servicio</th>
+                  <th>Fecha</th>
+                  <th>Hora</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody id="recentAppointmentsTbody">
+                <tr>
+                  <td colspan="6" class="text-center text-muted py-4">No hay citas registradas</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Appointments -->
+      <div id="appointments" class="page-section">
+        <h2 class="mb-4"><i class="fas fa-calendar"></i> Gestión de Citas</h2>
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Personal</th>
+                <th>Fecha</th>
+                <th>Hora</th>
+                <th>Teléfono</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="appointmentsTbody">
+              <tr>
+                <td colspan="7" class="text-center text-muted py-4">No hay citas registradas</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Personal Gallery -->
+      <div id="barbers" class="page-section">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h2><i class="fas fa-users"></i> Gestión de Personal</h2>
+          <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#barberModal">
+            <i class="fas fa-plus"></i> Agregar Personal
+          </button>
+        </div>
+        <div class="row" id="barberGallery">
+          <div class="col-12 text-center text-muted py-4">
+            Cargando personal...
+          </div>
+        </div>
+      </div>
+
+      <!-- Services -->
+      <div id="services" class="page-section">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h2><i class="fas fa-cut"></i> Gestión de Servicios</h2>
+          <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#serviceModal">
+            <i class="fas fa-plus"></i> Nuevo Servicio
+          </button>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th>Duración</th>
+                <th>Precio</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="servicesTbody">
+              <tr>
+                <td colspan="5" class="text-center text-muted py-4">No hay servicios registrados</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Clients -->
+      <div id="clients" class="page-section">
+        <h2 class="mb-4"><i class="fas fa-users-circle"></i> Gestión de Clientes</h2>
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Teléfono</th>
+                <th>Email</th>
+                <th>Fecha Registro</th>
+              </tr>
+            </thead>
+            <tbody id="clientsTbody">
+              <tr>
+                <td colspan="4" class="text-center text-muted py-4">No hay clientes registrados</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Client Booking View -->
+      <div id="clientView" class="page-section">
+        <div class="row justify-content-center">
+          <div class="col-md-8">
+            <div class="card border-0 shadow-lg">
+              <div class="card-body p-4">
+                <h3 class="card-title mb-4 text-center">Agendar Cita</h3>
+                
+                <!-- Booking Steps -->
+                <div class="booking-steps mb-5">
+                  <div class="booking-step active" data-step="1">
+                    <div class="step-number">1</div>
+                    <small>Datos</small>
+                  </div>
+                  <div class="booking-step" data-step="2">
+                    <div class="step-number">2</div>
+                    <small>Servicios</small>
+                  </div>
+                  <div class="booking-step" data-step="3">
+                    <div class="step-number">3</div>
+                    <small>Personal</small>
+                  </div>
+                  <div class="booking-step" data-step="4">
+                    <div class="step-number">4</div>
+                    <small>Fecha y Hora</small>
+                  </div>
+                </div>
+
+                <!-- Step 1: Personal Data -->
+                <div class="booking-form-step" data-step="1">
+                  <h5 class="mb-3">Tus Datos Personales</h5>
+                  <div class="mb-3">
+                    <label class="form-label">Nombre Completo</label>
+                    <input type="text" class="form-control" id="clientName" placeholder="Tu nombre">
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Teléfono</label>
+                    <input type="tel" class="form-control" id="clientPhone" placeholder="+57 xxx xxx xxxx">
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-control" id="clientEmail" placeholder="tu@email.com">
+                  </div>
+                  <button type="button" class="btn btn-primary w-100" onclick="goToStep(2)">
+                    Siguiente <i class="fas fa-arrow-right ms-2"></i>
+                  </button>
+                </div>
+
+                <!-- Step 2: Services -->
+                <div class="booking-form-step" data-step="2" style="display:none;">
+                  <h5 class="mb-3">Selecciona Servicios</h5>
+                  <div class="row" id="bookingServicesContainer"></div>
+                  <div class="mt-4">
+                    <button type="button" class="btn btn-secondary" onclick="goToStep(1)">
+                      <i class="fas fa-arrow-left me-2"></i> Anterior
+                    </button>
+                    <button type="button" class="btn btn-primary ms-2" onclick="goToStep(3)">
+                      Siguiente <i class="fas fa-arrow-right ms-2"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Step 3: Personal Selection -->
+                <div class="booking-form-step" data-step="3" style="display:none;">
+                  <h5 class="mb-3">Selecciona Personal</h5>
+                  <div class="row" id="bookingBarbersContainer"></div>
+                  <div class="mt-4">
+                    <button type="button" class="btn btn-secondary" onclick="goToStep(2)">
+                      <i class="fas fa-arrow-left me-2"></i> Anterior
+                    </button>
+                    <button type="button" class="btn btn-primary ms-2" onclick="goToStep(4)">
+                      Siguiente <i class="fas fa-arrow-right ms-2"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Step 4: Date and Time with Calendar -->
+                <div class="booking-form-step" data-step="4" style="display:none;">
+                  <h5 class="mb-3">Selecciona Fecha y Hora</h5>
+                  
+                  <div class="mb-4">
+                    <label class="form-label">Selecciona una Fecha</label>
+                    <div class="calendar-container">
+                      <div class="calendar-header">
+                        <button class="calendar-nav-btn" id="prevMonth" type="button">
+                          <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <h5 id="calendarMonth" style="margin: 0; flex: 1; text-align: center;"></h5>
+                        <button class="calendar-nav-btn" id="nextMonth" type="button">
+                          <i class="fas fa-chevron-right"></i>
+                        </button>
+                      </div>
+                      
+                      <div class="calendar-weekdays">
+                        <div class="calendar-weekday">Dom</div>
+                        <div class="calendar-weekday">Lun</div>
+                        <div class="calendar-weekday">Mar</div>
+                        <div class="calendar-weekday">Mié</div>
+                        <div class="calendar-weekday">Jue</div>
+                        <div class="calendar-weekday">Vie</div>
+                        <div class="calendar-weekday">Sáb</div>
+                      </div>
+                      
+                      <div class="calendar-days" id="calendarDays"></div>
+                    </div>
+                    <input type="hidden" id="bookingDate">
+                  </div>
+
+                  <div class="mb-3">
+                    <label class="form-label">Selecciona una Hora</label>
+                    <select class="form-select" id="bookingTime">
+                      <option value="">Selecciona una hora</option>
+                      <option value="09:00">09:00 AM</option>
+                      <option value="09:30">09:30 AM</option>
+                      <option value="10:00">10:00 AM</option>
+                      <option value="10:30">10:30 AM</option>
+                      <option value="11:00">11:00 AM</option>
+                      <option value="11:30">11:30 AM</option>
+                      <option value="14:00">02:00 PM</option>
+                      <option value="14:30">02:30 PM</option>
+                      <option value="15:00">03:00 PM</option>
+                      <option value="15:30">03:30 PM</option>
+                      <option value="16:00">04:00 PM</option>
+                      <option value="16:30">04:30 PM</option>
+                      <option value="17:00">05:00 PM</option>
+                      <option value="17:30">05:30 PM</option>
+                    </select>
+                  </div>
+
+                  <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> <strong>Confirmación:</strong> <span id="bookingSummary">Selecciona fecha y hora</span>
+                  </div>
+                  
+                  <div class="mt-4">
+                    <button type="button" class="btn btn-secondary" onclick="goToStep(3)">
+                      <i class="fas fa-arrow-left me-2"></i> Anterior
+                    </button>
+                    <button type="button" class="btn btn-success ms-2" onclick="confirmBooking()">
+                      <i class="fas fa-check me-2"></i> Confirmar Cita
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Personal Modal -->
+  <div class="modal fade" id="barberModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="barberModalLabel">Agregar Personal</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Nombre</label>
+            <input type="text" class="form-control" id="barberName" placeholder="Nombre completo">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Teléfono</label>
+            <input type="tel" class="form-control" id="barberPhone" placeholder="Teléfono">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Puesto / Especialidad</label>
+            <select class="form-select" id="barberSpecialty">
+              <option value="">Selecciona puesto</option>
+              <option value="Barbero">Barbero</option>
+              <option value="Manicurista">Manicurista</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Foto (JPG)</label>
+            <div class="input-group">
+              <input type="file" class="form-control" id="barberPhotoFile" accept=".jpg,.jpeg" placeholder="Selecciona una foto JPG">
+              <span class="input-group-text" id="barberPhotoStatus">
+                <i class="fas fa-cloud-upload-alt"></i>
+              </span>
+            </div>
+            <small class="text-muted d-block mt-2">Tamaño máximo: 5MB. Formatos: JPG, JPEG</small>
+            <div id="barberPhotoPreview" style="margin-top: 15px;">
+              <!-- La vista previa aparecerá aquí -->
+            </div>
+          </div>
+          <input type="hidden" id="barberPhotoBase64">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="saveBarberBtn">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Service Modal -->
+  <div class="modal fade" id="serviceModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="serviceModalLabel">Nuevo Servicio</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Nombre del Servicio</label>
+            <input type="text" class="form-control" id="serviceName" placeholder="Ej: Corte Clásico">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Descripción</label>
+            <textarea class="form-control" id="serviceDescription" placeholder="Describe el servicio" rows="2"></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Duración (minutos)</label>
+            <input type="number" class="form-control" id="serviceDuration" placeholder="30">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Precio</label>
+            <input type="number" class="form-control" id="servicePrice" placeholder="25000">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="saveServiceBtn">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script id="app-script">
+// === CONFIGURACIÓN GLOBAL ===
+const ADMIN_PASSWORD = '1234';
+let currentStep = 1;
+let editingBarberId = null;
+let editingServiceId = null;
+let currentUser = null;
+let selectedBarberId = null;
+let selectedServices = [];
+let charts = {};
+let currentCalendarDate = new Date();
+let selectedDate = null;
+
+const initialStaff = [
+  {
+    id: 1,
+    name: 'Carlos Mendoza',
+    phone: '+57 3001234567',
+    specialty: 'Barbero',
+    photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop'
+  },
+  {
+    id: 2,
+    name: 'Juan Rodríguez',
+    phone: '+57 3007654321',
+    specialty: 'Barbero',
+    photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=400&fit=crop'
+  },
+  {
+    id: 3,
+    name: 'Miguel González',
+    phone: '+57 3005555555',
+    specialty: 'Barbero',
+    photo: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=400&fit=crop'
+  }
+];
+
+const initialServices = [
+  {
+    id: 1,
+    name: 'Corte Clásico',
+    description: 'Corte tradicional con máquina y tijera',
+    duration: 30,
+    price: 25000
+  },
+  {
+    id: 2,
+    name: 'Corte Moderno',
+    description: 'Corte con diseños modernos',
+    duration: 45,
+    price: 35000
+  },
+  {
+    id: 3,
+    name: 'Afeitada',
+    description: 'Afeitada completa con navaja',
+    duration: 20,
+    price: 15000
+  },
+  {
+    id: 4,
+    name: 'Peinado',
+    description: 'Peinado con estilo',
+    duration: 25,
+    price: 20000
+  }
+];
+
+// === UTILIDADES ===
+function showToast(message, type = 'info', duration = 3000) {
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+  const div = document.createElement('div');
+  div.className = `toast-message ${type}`;
+  div.innerHTML = `<div>${message}</div>`;
+  container.appendChild(div);
+  setTimeout(() => {
+    div.style.opacity = '0';
+    setTimeout(() => {
+      if (container.contains(div)) container.removeChild(div);
+    }, 300);
+  }, duration);
+}
+
+function pad(n) {
+  return n < 10 ? '0' + n : '' + n;
+}
+
+function formatISOLocal(date) {
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+function isSameDay(a, b) {
+  return a.getFullYear() === b.getFullYear() &&
+         a.getMonth() === b.getMonth() &&
+         a.getDate() === b.getDate();
+}
+
+// Sidebar control helpers
+function showSidebar() {
+  const sidebar = document.getElementById('mainSidebar');
+  const content = document.querySelector('.main-content');
+  if (!sidebar || !content) return;
+  sidebar.classList.remove('collapsed');
+  content.classList.remove('sidebar-collapsed');
+}
+
+function hideSidebar() {
+  const sidebar = document.getElementById('mainSidebar');
+  const content = document.querySelector('.main-content');
+  if (!sidebar || !content) return;
+  sidebar.classList.add('collapsed');
+  content.classList.add('sidebar-collapsed');
+}
+
+function toggleSidebar() {
+  const sidebar = document.getElementById('mainSidebar');
+  if (!sidebar) return;
+  if (sidebar.classList.contains('collapsed')) {
+    showSidebar();
+  } else {
+    hideSidebar();
+  }
+}
+
+// === OBSERVADORES DE CAMBIOS ===
+function setupStorageObservers() {
+  // Observador para cambios en localStorage
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'loockingBarbers' || e.key === 'loockingServices' || e.key === 'loockingAppointments') {
+      refreshAllViews();
+    }
+  });
+}
+
+function refreshAllViews() {
+  // Actualizar la vista actual
+  const activeSection = document.querySelector('.page-section.active');
+  if (!activeSection) return;
+
+  const sectionId = activeSection.id;
+
+  switch(sectionId) {
+    case 'dashboard':
+      updateDashboard();
+      initDashboardCharts();
+      break;
+    case 'services':
+      renderServices();
+      break;
+    case 'barbers':
+      renderBarbers();
+      break;
+    case 'appointments':
+      renderAppointments();
+      break;
+    case 'clients':
+      renderClients();
+      break;
+    case 'clientView':
+      renderBookingServices();
+      renderBookingBarbers();
+      break;
+  }
+}
+
+// Función auxiliar para disparar actualizaciones locales
+function triggerLocalUpdate(key) {
+  if (key === 'loockingServices') {
+    if (document.getElementById('servicesTbody')) renderServices();
+    if (document.getElementById('bookingServicesContainer')) renderBookingServices();
+    if (document.querySelector('.page-section.active#dashboard')) {
+      initDashboardCharts();
+      updateDashboard();
+    }
+  }
+  if (key === 'loockingBarbers') {
+    if (document.getElementById('barberGallery')) renderBarbers();
+    if (document.getElementById('bookingBarbersContainer')) renderBookingBarbers();
+    if (document.querySelector('.page-section.active#dashboard')) {
+      initDashboardCharts();
+      updateDashboard();
+    }
+  }
+  if (key === 'loockingAppointments') {
+    if (document.querySelector('.page-section.active#dashboard')) {
+      updateDashboard();
+      initDashboardCharts();
+    }
+    if (document.getElementById('appointmentsTbody')) renderAppointments();
+    if (document.getElementById('recentAppointmentsTbody')) renderRecentAppointments();
+  }
+}
+
+// === INICIALIZACIÓN ===
+document.addEventListener('DOMContentLoaded', function() {
+  if (!localStorage.getItem('loockingBarbers')) {
+    localStorage.setItem('loockingBarbers', JSON.stringify(initialStaff));
+  }
+  if (!localStorage.getItem('loockingServices')) {
+    localStorage.setItem('loockingServices', JSON.stringify(initialServices));
+  }
+  if (!localStorage.getItem('loockingAppointments')) {
+    localStorage.setItem('loockingAppointments', JSON.stringify([]));
+  }
+  if (!localStorage.getItem('loockingClients')) {
+    localStorage.setItem('loockingClients', JSON.stringify([]));
+  }
+
+  setupEventListeners();
+  setupStorageObservers();
+  updateDashboardDate();
+});
+
+function updateDashboardDate() {
+  const today = new Date();
+  const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  const dateEl = document.getElementById('dashboardDate');
+  if (dateEl) {
+    dateEl.textContent = today.toLocaleDateString('es-ES', options);
+  }
+}
+
+function setupEventListeners() {
+  // Autenticación
+  document.getElementById('adminAccess')?.addEventListener('click', adminLogin);
+  document.getElementById('clientAccess')?.addEventListener('click', clientLogin);
+  document.getElementById('logoutBtn')?.addEventListener('click', logout);
+
+  // Navegación
+  document.querySelectorAll('[data-page]').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const page = e.target.closest('[data-page]')?.dataset.page;
+      if (page) switchPage(page);
+    });
+  });
+
+  // Botones del formulario
+  document.getElementById('saveBarberBtn')?.addEventListener('click', saveBarber);
+  document.getElementById('saveServiceBtn')?.addEventListener('click', saveService);
+
+  // Modales
+  const barberModalEl = document.getElementById('barberModal');
+  barberModalEl?.addEventListener('show.bs.modal', () => {
+    if (!editingBarberId) {
+      document.getElementById('barberName').value = '';
+      document.getElementById('barberPhone').value = '';
+      document.getElementById('barberSpecialty').value = '';
+      document.getElementById('barberPhotoFile').value = '';
+      document.getElementById('barberPhotoBase64').value = '';
+      document.getElementById('barberPhotoPreview').innerHTML = '';
+      document.getElementById('barberPhotoStatus').innerHTML = '<i class="fas fa-cloud-upload-alt"></i>';
+      document.getElementById('barberModalLabel').textContent = 'Agregar Personal';
+      document.getElementById('saveBarberBtn').textContent = 'Guardar';
+    }
+  });
+
+  barberModalEl?.addEventListener('hide.bs.modal', () => {
+    editingBarberId = null;
+    // Actualizar vistas al cerrar
+    setTimeout(() => {
+      renderBarbers();
+      renderBookingBarbers();
+      updateDashboard();
+      initDashboardCharts();
+    }, 100);
+  });
+
+  const serviceModalEl = document.getElementById('serviceModal');
+  serviceModalEl?.addEventListener('show.bs.modal', (e) => {
+    // Si no estamos editando (editingServiceId es null), limpiar formulario
+    // Si estamos editando, la función editService() ya llenó los datos
+    if (!editingServiceId) {
+      document.getElementById('serviceName').value = '';
+      document.getElementById('serviceDescription').value = '';
+      document.getElementById('serviceDuration').value = '';
+      document.getElementById('servicePrice').value = '';
+      document.getElementById('serviceModalLabel').textContent = 'Nuevo Servicio';
+      document.getElementById('saveServiceBtn').textContent = 'Guardar';
+    }
+  });
+
+  serviceModalEl?.addEventListener('hide.bs.modal', () => {
+    // Limpiar estado de edición
+    editingServiceId = null;
+  });
+
+  // Calendario
+  document.getElementById('prevMonth')?.addEventListener('click', previousMonth);
+  document.getElementById('nextMonth')?.addEventListener('click', nextMonth);
+  document.getElementById('bookingTime')?.addEventListener('change', updateBookingSummary);
+
+  // Sidebar toggle - click en botón
+  const sidebarToggle = document.getElementById('sidebarToggle');
+  if (sidebarToggle) {
+    sidebarToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleSidebar();
+    });
+  }
+
+  // Sidebar close - click fuera
+  document.addEventListener('click', (e) => {
+    const sidebar = document.getElementById('mainSidebar');
+    if (!sidebar) return;
+    
+    // Si está colapsado, no hacer nada
+    if (sidebar.classList.contains('collapsed')) return;
+    
+    const clickInsideSidebar = e.target.closest('#mainSidebar');
+    const clickOnToggle = e.target.closest('#sidebarToggle');
+    
+    if (!clickInsideSidebar && !clickOnToggle) {
+      hideSidebar();
+    }
+  });
+
+  // Carga de foto
+  document.getElementById('barberPhotoFile')?.addEventListener('change', handleBarberPhotoUpload);
+}
+
+// === AUTENTICACIÓN ===
+function adminLogin() {
+  const password = document.getElementById('adminPassword').value;
+  if (password === ADMIN_PASSWORD) {
+    currentUser = 'admin';
+    showLoginSuccess();
+  } else {
+    showToast('Contraseña incorrecta', 'error');
+    document.getElementById('adminPassword').value = '';
+  }
+}
+
+function clientLogin() {
+  currentUser = 'client';
+  showLoginSuccess();
+}
+
+function showLoginSuccess() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'block';
+
+  if (currentUser === 'client') {
+    document.getElementById('mainSidebar').style.display = 'none';
+    switchPage('clientView');
+    renderBookingServices();
+    renderBookingBarbers();
+    currentCalendarDate = new Date();
+    renderCalendar();
+  } else {
+    document.getElementById('mainSidebar').style.display = 'block';
+    showSidebar();
+    renderServices();
+    renderBarbers();
+    renderAppointments();
+    renderClients();
+    updateDashboard();
+    switchPage('dashboard');
+  }
+}
+
+function logout() {
+  currentUser = null;
+  selectedBarberId = null;
+  selectedServices = [];
+  selectedDate = null;
+  currentStep = 1;
+
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('mainApp').style.display = 'none';
+  document.getElementById('adminPassword').value = '';
+  document.getElementById('clientName').value = '';
+  document.getElementById('clientPhone').value = '';
+  document.getElementById('clientEmail').value = '';
+
+  showToast('Sesión cerrada', 'info');
+}
+
+function switchPage(page) {
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  const section = document.getElementById(page);
+  if (section) {
+    section.classList.add('active');
+  }
+  document.querySelectorAll('[data-page]').forEach(l => l.classList.remove('active'));
+  document.querySelector(`[data-page="${page}"]`)?.classList.add('active');
+
+  if (page === 'dashboard') {
+    setTimeout(() => initDashboardCharts(), 100);
+  }
+  if (page === 'appointments') {
+    renderAppointments();
+  }
+  if (page === 'clients') {
+    renderClients();
+  }
+}
+
+// === GESTIÓN DE SERVICIOS ===
+function renderServices() {
+  const services = JSON.parse(localStorage.getItem('loockingServices')) || [];
+  const tbody = document.getElementById('servicesTbody');
+
+  if (!tbody) return;
+
+  if (services.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">No hay servicios registrados</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = '';
+  services.forEach(s => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${s.name}</strong></td>
+      <td>${s.description}</td>
+      <td>${s.duration} min</td>
+      <td>$${s.price.toLocaleString()}</td>
+      <td>
+        <button class="btn btn-sm btn-outline-primary me-1" title="Editar servicio" data-service-edit="${s.id}">
+          <i class="fas fa-edit"></i> Editar
+        </button>
+        <button class="btn btn-sm btn-outline-danger" title="Eliminar servicio" data-service-delete="${s.id}">
+          <i class="fas fa-trash"></i> Eliminar
+        </button>
+      </td>
+    `;
+
+    // Event listener para editar
+    const editBtn = tr.querySelector('[data-service-edit]');
+    if (editBtn) {
+      editBtn.addEventListener('click', () => editService(s.id));
+    }
+
+    // Event listener para eliminar
+    const deleteBtn = tr.querySelector('[data-service-delete]');
+    if (deleteBtn) {
+      deleteBtn.addEventListener('click', () => deleteService(s.id));
+    }
+
+    tbody.appendChild(tr);
+  });
+}
+
+function saveService() {
+  const name = document.getElementById('serviceName').value.trim();
+  const description = document.getElementById('serviceDescription').value.trim();
+  const durationValue = document.getElementById('serviceDuration').value.trim();
+  const priceValue = document.getElementById('servicePrice').value.trim();
+
+  // Validaciones mejoradas
+  if (!name) {
+    showToast('Ingresa el nombre del servicio', 'error');
+    document.getElementById('serviceName').focus();
+    return;
+  }
+
+  if (!description) {
+    showToast('Ingresa una descripción del servicio', 'error');
+    document.getElementById('serviceDescription').focus();
+    return;
+  }
+
+  if (!durationValue || isNaN(parseInt(durationValue)) || parseInt(durationValue) <= 0) {
+    showToast('Ingresa una duración válida (en minutos)', 'error');
+    document.getElementById('serviceDuration').focus();
+    return;
+  }
+
+  if (!priceValue || isNaN(parseInt(priceValue)) || parseInt(priceValue) <= 0) {
+    showToast('Ingresa un precio válido', 'error');
+    document.getElementById('servicePrice').focus();
+    return;
+  }
+
+  const duration = parseInt(durationValue);
+  const price = parseInt(priceValue);
+
+  let services = JSON.parse(localStorage.getItem('loockingServices')) || [];
+  const isEditing = editingServiceId !== null;
+
+  if (isEditing) {
+    // Editar servicio existente
+    const idx = services.findIndex(s => s.id === editingServiceId);
+    if (idx !== -1) {
+      services[idx] = { 
+        id: editingServiceId, 
+        name, 
+        description, 
+        duration, 
+        price 
+      };
+      showToast('Servicio actualizado exitosamente', 'success');
+    } else {
+      showToast('No se encontró el servicio a editar', 'error');
+      return;
+    }
+  } else {
+    // Crear nuevo servicio
+    const newId = services.length ? Math.max(...services.map(s => s.id)) + 1 : 1;
+    services.push({ 
+      id: newId, 
+      name, 
+      description, 
+      duration, 
+      price 
+    });
+    showToast('Servicio creado exitosamente', 'success');
+  }
+
+  // Guardar en localStorage
+  localStorage.setItem('loockingServices', JSON.stringify(services));
+  
+  // Cerrar modal
+  const modalElement = document.getElementById('serviceModal');
+  const modalInstance = bootstrap.Modal.getInstance(modalElement);
+  if (modalInstance) {
+    modalInstance.hide();
+  }
+
+  // Limpiar variable de edición
+  editingServiceId = null;
+
+  // Limpiar formulario
+  document.getElementById('serviceName').value = '';
+  document.getElementById('serviceDescription').value = '';
+  document.getElementById('serviceDuration').value = '';
+  document.getElementById('servicePrice').value = '';
+  document.getElementById('serviceModalLabel').textContent = 'Nuevo Servicio';
+
+  // Actualizar vistas
+  renderServices();
+  renderBookingServices();
+  updateDashboard();
+  initDashboardCharts();
+}
+
+function editService(id) {
+  const services = JSON.parse(localStorage.getItem('loockingServices')) || [];
+  const service = services.find(s => s.id === id);
+
+  if (!service) {
+    showToast('No se encontró el servicio', 'error');
+    return;
+  }
+
+  // Establecer variable global para saber que estamos editando
+  editingServiceId = service.id;
+
+  // Cargar datos en el formulario
+  document.getElementById('serviceName').value = service.name;
+  document.getElementById('serviceDescription').value = service.description;
+  document.getElementById('serviceDuration').value = service.duration;
+  document.getElementById('servicePrice').value = service.price;
+
+  // Cambiar título del modal
+  document.getElementById('serviceModalLabel').textContent = `Editar: ${service.name}`;
+
+  // Cambiar texto del botón
+  const saveBtn = document.getElementById('saveServiceBtn');
+  saveBtn.textContent = 'Actualizar Servicio';
+
+  // Mostrar modal
+  const modalElement = document.getElementById('serviceModal');
+  const modal = new bootstrap.Modal(modalElement);
+  modal.show();
+}
+
+function deleteService(id) {
+  const services = JSON.parse(localStorage.getItem('loockingServices')) || [];
+  const service = services.find(s => s.id === id);
+
+  if (!service) {
+    showToast('No se encontró el servicio', 'error');
+    return;
+  }
+
+  // Confirmación mejorada
+  if (confirm(`¿Estás seguro de que deseas eliminar el servicio "${service.name}"? Esta acción no se puede deshacer.`)) {
+    // Eliminar servicio
+    let updatedServices = services.filter(s => s.id !== id);
+    localStorage.setItem('loockingServices', JSON.stringify(updatedServices));
+
+    // También eliminar referencias en citas
+    let appointments = JSON.parse(localStorage.getItem('loockingAppointments')) || [];
+    appointments.forEach(appt => {
+      if (appt.serviceIds && appt.serviceIds.includes(id)) {
+        appt.serviceIds = appt.serviceIds.filter(sId => sId !== id);
+      }
+    });
+    localStorage.setItem('loockingAppointments', JSON.stringify(appointments));
+
+    // Mostrar notificación
+    showToast(`Servicio "${service.name}" eliminado exitosamente`, 'success');
+
+    // Actualizar vistas
+    renderServices();
+    renderBookingServices();
+    updateDashboard();
+    initDashboardCharts();
+  }
+}
+
+// === GESTIÓN DE PERSONAL ===
+function renderBarbers() {
+  const barbers = JSON.parse(localStorage.getItem('loockingBarbers')) || [];
+  const gallery = document.getElementById('barberGallery');
+
+  if (!gallery) return;
+
+  if (barbers.length === 0) {
+    gallery.innerHTML = '<div class="col-12 text-center text-muted py-4">No hay personal registrado</div>';
+    return;
+  }
+
+  gallery.innerHTML = '';
+  barbers.forEach(b => {
+    const photoUrl = b.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(b.name)}&background=c19b76&color=fff&size=400`;
+    
+    const col = document.createElement('div');
+    col.className = 'col-md-6 col-lg-4 mb-4';
+    col.innerHTML = `
+      <div class="barber-card">
+        <img src="${photoUrl}" class="barber-image" alt="${b.name}" onerror="this.src='https://via.placeholder.com/400x280?text=${encodeURIComponent(b.name)}'">
+        <div class="barber-info">
+          <div class="barber-badge">
+            ${b.specialty === 'Barbero' ? '<i class="fas fa-scissors me-1"></i>' : '<i class="fas fa-spa me-1"></i>'}
+            ${b.specialty}
+          </div>
+          <h5 class="barber-name">${b.name}</h5>
+          <p class="barber-phone"><i class="fas fa-phone"></i> ${b.phone}</p>
+          <div class="barber-rating">
+            <i class="fas fa-star"></i> <i class="fas fa-star"></i> <i class="fas fa-star"></i> <i class="fas fa-star"></i> <i class="fas fa-star-half-alt"></i>
+          </div>
+          <div class="barber-actions">
+            <button class="btn btn-sm btn-outline-primary edit-barber" title="Editar perfil">
+              <i class="fas fa-edit"></i> Editar
+            </button>
+            <button class="btn btn-sm btn-outline-danger remove-barber" title="Eliminar perfil">
+              <i class="fas fa-trash"></i> Eliminar
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    col.querySelector('.edit-barber').addEventListener('click', () => editBarber(b.id));
+    col.querySelector('.remove-barber').addEventListener('click', () => deleteBarber(b.id));
+    
+    gallery.appendChild(col);
+  });
+}
+
+function editBarber(id) {
+  const barbers = JSON.parse(localStorage.getItem('loockingBarbers')) || [];
+  const barber = barbers.find(b => b.id === id);
+  
+  if (barber) {
+    editingBarberId = barber.id;
+    document.getElementById('barberName').value = barber.name;
+    document.getElementById('barberPhone').value = barber.phone;
+    document.getElementById('barberSpecialty').value = barber.specialty;
+    document.getElementById('barberPhotoFile').value = '';
+    document.getElementById('barberPhotoBase64').value = barber.photo || '';
+    document.getElementById('barberPhotoStatus').innerHTML = '<i class="fas fa-cloud-upload-alt"></i>';
+    document.getElementById('barberModalLabel').textContent = `Editar: ${barber.name}`;
+    
+    const saveBtn = document.getElementById('saveBarberBtn');
+    saveBtn.textContent = 'Actualizar Perfil';
+    
+    if (barber.photo) {
+      document.getElementById('barberPhotoPreview').innerHTML = `
+        <div class="text-center">
+          <img src="${barber.photo}" alt="Foto actual" style="max-width: 100%; max-height: 200px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+          <p class="text-muted mt-2 mb-0"><small>Foto actual</small></p>
+        </div>
+      `;
+    }
+    
+    new bootstrap.Modal(document.getElementById('barberModal')).show();
+  }
+}
+
+function deleteBarber(id) {
+  const barbers = JSON.parse(localStorage.getItem('loockingBarbers')) || [];
+  const barber = barbers.find(b => b.id === id);
+  
+  if (!barber) {
+    showToast('Personal no encontrado', 'error');
+    return;
+  }
+  
+  if (confirm(`¿Estás seguro de que deseas eliminar el perfil de ${barber.name}? Esta acción no se puede deshacer.`)) {
+    let updatedBarbers = barbers.filter(b => b.id !== id);
+    localStorage.setItem('loockingBarbers', JSON.stringify(updatedBarbers));
+    
+    let appointments = JSON.parse(localStorage.getItem('loockingAppointments')) || [];
+    appointments = appointments.filter(a => a.barberId !== id);
+    localStorage.setItem('loockingAppointments', JSON.stringify(appointments));
+    
+    // Actualización inmediata
+    triggerLocalUpdate('loockingBarbers');
+    triggerLocalUpdate('loockingAppointments');
+    showToast(`${barber.name} ha sido eliminado correctamente`, 'success');
+  }
+}
+
+// === VISTAS DE CLIENTE (BOOKING) ===
+function renderBookingServices() {
+  const container = document.getElementById('bookingServicesContainer');
+  if (!container) return;
+
+  const services = JSON.parse(localStorage.getItem('loockingServices')) || [];
+
+  if (services.length === 0) {
+    container.innerHTML = '<div class="col-12 text-center text-muted py-3">No hay servicios disponibles</div>';
+    return;
+  }
+
+  container.innerHTML = '';
+  services.forEach(s => {
+    const col = document.createElement('div');
+    col.className = 'col-md-12 mb-3';
+    col.innerHTML = `
+      <div class="service-checkbox">
+        <div class="form-check">
+          <input class="form-check-input service-select" type="checkbox" value="${s.id}" id="service${s.id}">
+          <label class="form-check-label" for="service${s.id}">
+            <strong>${s.name}</strong> 
+            <span class="badge bg-secondary ms-2">${s.duration} min</span>
+            <span class="badge bg-success ms-2">$${s.price.toLocaleString()}</span>
+            <br>
+            <small class="text-muted">${s.description}</small>
+          </label>
+        </div>
+      </div>
+    `;
+
+    col.querySelector('.service-select').addEventListener('change', (e) => {
+      const svcId = parseInt(e.target.value);
+      if (e.target.checked) {
+        if (!selectedServices.includes(svcId)) {
+          selectedServices.push(svcId);
+        }
+      } else {
+        selectedServices = selectedServices.filter(id => id !== svcId);
+      }
+      updateBookingSummary();
+    });
+
+    container.appendChild(col);
+  });
+}
+
+function renderBookingBarbers() {
+  const container = document.getElementById('bookingBarbersContainer');
+  if (!container) return;
+  
+  const barbers = JSON.parse(localStorage.getItem('loockingBarbers')) || [];
+  
+  if (barbers.length === 0) {
+    container.innerHTML = '<div class="col-12 text-center text-muted py-3">No hay personal disponible</div>';
+    return;
+  }
+
+  container.innerHTML = '';
+  barbers.forEach(b => {
+    const photoUrl = b.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(b.name)}&background=c19b76&color=fff&size=300`;
+    
+    const col = document.createElement('div');
+    col.className = 'col-md-6 mb-3';
+    const isSelected = selectedBarberId === b.id;
+    col.innerHTML = `
+      <div class="barber-card ${isSelected ? 'border border-success border-3' : ''}" style="cursor:pointer;">
+        <img src="${photoUrl}" class="barber-image" alt="${b.name}" onerror="this.src='https://via.placeholder.com/300x280?text=${encodeURIComponent(b.name)}'">
+        <div class="barber-info">
+          <div style="font-size: 0.75rem; color: var(--secondary); font-weight: 600; margin-bottom: 5px;">
+            ${b.specialty === 'Barbero' ? '<i class="fas fa-scissors"></i>' : '<i class="fas fa-spa"></i>'} ${b.specialty}
+          </div>
+          <h6 class="barber-name">${b.name}</h6>
+          ${isSelected ? '<div class="alert alert-success py-1 px-2 mb-0"><i class="fas fa-check"></i> Seleccionado</div>' : ''}
+        </div>
+      </div>
+    `;
+    col.querySelector('.barber-card').addEventListener('click', () => selectBarber(b.id));
+    container.appendChild(col);
+  });
+
+  updateAvailableTimes();
+}
+
+function selectBarber(id) {
+  selectedBarberId = id;
+  renderBookingBarbers();
+  updateAvailableTimes();
+  updateBookingSummary();
+}
+
+// === CALENDARIO ===
+function renderCalendar() {
+  const container = document.getElementById('calendarDays');
+  const title = document.getElementById('calendarMonth');
+  if (!container || !title) return;
+
+  title.textContent = currentCalendarDate.toLocaleString('es-ES', { month: 'long', year: 'numeric' });
+
+  container.innerHTML = '';
+  const year = currentCalendarDate.getFullYear();
+  const month = currentCalendarDate.getMonth();
+
+  const firstOfMonth = new Date(year, month, 1);
+  const startDay = firstOfMonth.getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  const totalSlots = startDay + daysInMonth;
+  const totalCells = Math.ceil(totalSlots / 7) * 7;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  for (let i = 0; i < totalCells; i++) {
+    const dayNum = i - startDay + 1;
+    const cell = document.createElement('div');
+    cell.className = 'calendar-day';
+
+    const cellDate = new Date(year, month, dayNum);
+
+    if (dayNum < 1 || dayNum > daysInMonth) {
+      cell.classList.add('other-month', 'disabled');
+      cell.textContent = cellDate.getDate();
+      cell.title = 'No disponible';
+    } else {
+      cell.textContent = dayNum;
+
+      const cellCopy = new Date(year, month, dayNum);
+      cellCopy.setHours(0, 0, 0, 0);
+
+      if (cellCopy < today) {
+        cell.classList.add('disabled');
+        cell.title = 'Fecha pasada';
+      } else {
+        cell.addEventListener('click', () => {
+          document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('selected'));
+         
+ 
+          cell.classList.add('selected');
+
+          selectedDate = new Date(year, month, dayNum);
+          document.getElementById('bookingDate').value = formatISOLocal(selectedDate);
+          updateAvailableTimes();
+          updateBookingSummary();
+        });
+      }
+
+      if (isSameDay(cellDate, new Date())) {
+        cell.classList.add('today');
+      }
+
+      if (selectedDate && isSameDay(cellDate, selectedDate)) {
+        cell.classList.add('selected');
+      }
+    }
+
+    container.appendChild(cell);
+  }
+}
+
+function previousMonth() {
+  currentCalendarDate = new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth() - 1, 1);
+  renderCalendar();
+}
+
+function nextMonth() {
+  currentCalendarDate = new Date(currentCalendarDate.getFullYear(), currentCalendarDate.getMonth() + 1, 1);
+  renderCalendar();
+}
+
+// === DISPONIBILIDAD DE HORAS ===
+function updateAvailableTimes() {
+  const select = document.getElementById('bookingTime');
+  if (!select) return;
+
+  const appointments = JSON.parse(localStorage.getItem('loockingAppointments')) || [];
+  const dateIso = document.getElementById('bookingDate').value;
+
+  if (!selectedBarberId || !dateIso) {
+    Array.from(select.options).forEach(opt => {
+      if (opt.value === '') return;
+      opt.disabled = true;
+      opt.classList.add('text-muted');
+      opt.title = !selectedBarberId ? 'Selecciona personal primero' : 'Selecciona fecha primero';
+    });
+    return;
+  }
+
+  Array.from(select.options).forEach(opt => {
+    opt.disabled = false;
+    opt.classList.remove('text-muted');
+    opt.title = '';
+    if (opt.dataset.originalText) {
+      opt.textContent = opt.dataset.originalText;
+    } else {
+      opt.dataset.originalText = opt.textContent;
+    }
+  });
+
+  appointments.forEach(a => {
+    if (parseInt(a.barberId) === parseInt(selectedBarberId) && a.date === dateIso) {
+      const opt = Array.from(select.options).find(o => o.value === a.time);
+      if (opt) {
+        opt.disabled = true;
+        opt.title = `Ocupado por ${a.clientName}`;
+        opt.classList.add('text-muted');
+        if (!opt.textContent.includes('(Ocupado)')) opt.textContent = opt.textContent + ' (Ocupado)';
+      }
+    }
+  });
+
+  const cur = select.value;
+  if (cur && select.querySelector(`option[value="${cur}"]`)?.disabled) {
+    select.value = '';
+  }
+  updateBookingSummary();
+}
+
+function updateBookingSummary() {
+  const services = JSON.parse(localStorage.getItem('loockingServices')) || [];
+  const barbers = JSON.parse(localStorage.getItem('loockingBarbers')) || [];
+  
+  const selectedServiceNames = services
+    .filter(s => selectedServices.includes(s.id))
+    .map(s => s.name)
+    .join(', ') || '—';
+  
+  const barber = barbers.find(b => b.id === selectedBarberId);
+  const dateText = selectedDate ? new Date(selectedDate).toLocaleDateString('es-ES') : '—';
+  const time = document.getElementById('bookingTime')?.value || '—';
+
+  const summary = document.getElementById('bookingSummary');
+  if (summary) {
+    summary.textContent = `${selectedServiceNames} con ${barber?.name || 'Personal'} — ${dateText} ${time !== '—' ? ('| ' + time) : ''}`;
+  }
+}
+
+// === PASOS DEL FORMULARIO ===
+
+function goToStep(step) {
+  if (currentStep === 1) {
+    const name = document.getElementById('clientName').value.trim();
+    const phone = document.getElementById('clientPhone').value.trim();
+    const email = document.getElementById('clientEmail').value.trim();
+    
+    if (!name || !phone || !email) {
+      showToast('Completa todos los campos', 'error');
+      return;
+    }
+  }
+  
+  if (currentStep === 2 && selectedServices.length === 0) {
+    showToast('Selecciona al menos un servicio', 'error');
+    return;
+  }
+
+  if (currentStep === 3 && !selectedBarberId) {
+    showToast('Selecciona personal', 'error');
+    return;
+  }
+
+  currentStep = step;
+  document.querySelectorAll('.booking-form-step').forEach(s => s.style.display = 'none');
+  const target = document.querySelector(`.booking-form-step[data-step="${step}"]`);
+  if (target) target.style.display = 'block';
+
+  document.querySelectorAll('.booking-step').forEach((s, i) => {
+    s.classList.remove('active', 'completed');
+    if (i + 1 < step) s.classList.add('completed');
+    if (i + 1 === step) s.classList.add('active');
+  });
+
+  if (step === 4) {
+    currentCalendarDate = currentCalendarDate || new Date();
+    renderCalendar();
+    updateAvailableTimes();
+    updateBookingSummary();
+  }
+}
+
+// === OVERLAY DE CONFIRMACIÓN ===
+function showConfirmationOverlay(appointment) {
+  const existing = document.getElementById('confirmationOverlay');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'confirmationOverlay';
+  overlay.className = 'confirmation-overlay';
+
+  const card = document.createElement('div');
+  card.className = 'confirmation-card';
+  card.innerHTML = `
+    <div style="text-align: center; margin-bottom: 15px;">
+      <i class="fas fa-check-circle" style="font-size: 3rem; color: var(--success);"></i>
+    </div>
+    <h4 style="color: var(--success); margin-bottom: 10px; text-align: center;">¡Tu cita ha sido agendada!</h4>
+    <p style="text-align: center; color: #666; margin-bottom: 15px;">Te llegará un mensaje 2 horas antes. Te recomendamos llegar 10 minutos antes.</p>
+    <hr style="margin: 15px 0;">
+    <div style="font-size: 0.95rem;">
+      <div class="detail-row">
+        <span class="detail-label"><i class="fas fa-user"></i> Cliente:</span>
+        <span class="detail-value">${appointment.clientName}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label"><i class="fas fa-phone"></i> Teléfono:</span>
+        <span class="detail-value">${appointment.clientPhone}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label"><i class="fas fa-envelope"></i> Email:</span>
+        <span class="detail-value">${appointment.clientEmail}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label"><i class="fas fa-scissors"></i> Personal:</span>
+        <span class="detail-value">${appointment.barberName}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label"><i class="fas fa-cut"></i> Servicio:</span>
+        <span class="detail-value">${appointment.servicesText}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label"><i class="fas fa-calendar"></i> Fecha:</span>
+        <span class="detail-value">${new Date(appointment.date).toLocaleDateString('es-ES')}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label"><i class="fas fa-clock"></i> Hora:</span>
+        <span class="detail-value">${appointment.time}</span>
+      </div>
+    </div>
+    <div style="text-align: center; margin-top: 15px;">
+      <small class="text-muted"><i class="fas fa-mouse"></i> Cierra al presionar fuera de este recuadro</small>
+    </div>
+  `;
+
+  card.addEventListener('click', (e) => e.stopPropagation());
+  overlay.addEventListener('click', () => overlay.remove());
+
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+}
+
+// === CONFIRMAR CITA ===
+function confirmBooking() {
+  const name = document.getElementById('clientName').value.trim();
+  const phone = document.getElementById('clientPhone').value.trim();
+  const email = document.getElementById('clientEmail').value.trim();
+  const date = document.getElementById('bookingDate').value;
+  const time = document.getElementById('bookingTime').value;
+  
+  if (!name || !phone || !email) {
+    showToast('Completa los datos del cliente', 'error');
+    return;
+  }
+  if (!date || !time) {
+    showToast('Selecciona fecha y hora', 'error');
+    return;
+  }
+  if (!selectedBarberId) {
+    showToast('Selecciona personal', 'error');
+    return;
+  }
+  if (selectedServices.length === 0) {
+    showToast('Selecciona al menos un servicio', 'error');
+    return;
+  }
+
+  const appointments = JSON.parse(localStorage.getItem('loockingAppointments')) || [];
+  const conflict = appointments.find(a => 
+    parseInt(a.barberId) === parseInt(selectedBarberId) && 
+    a.date === date && 
+    a.time === time
+  );
+  
+  if (conflict) {
+    showToast('La hora seleccionada ya está ocupada. Elige otra.', 'error');
+    updateAvailableTimes();
+    return;
+  }
+
+  let clients = JSON.parse(localStorage.getItem('loockingClients')) || [];
+  let client = clients.find(c => c.email === email);
+  
+  if (!client) {
+    client = {
+      id: clients.length ? Math.max(...clients.map(c => c.id)) + 1 : 1,
+      name, phone, email,
+      createdAt: new Date().toISOString()
+    };
+    clients.push(client);
+    localStorage.setItem('loockingClients', JSON.stringify(clients));
+  }
+
+  let appts = appointments;
+  const newAppointment = {
+    id: appts.length ? Math.max(...appts.map(a => a.id)) + 1 : 1,
+    clientId: client.id,
+    clientName: name,
+    clientPhone: phone,
+    clientEmail: email,
+    barberId: selectedBarberId,
+    serviceIds: selectedServices.slice(),
+    date: date,
+    time: time,
+    status: 'confirmada',
+    createdAt: new Date().toISOString()
+  };
+  appts.push(newAppointment);
+  localStorage.setItem('loockingAppointments', JSON.stringify(appts));
+
+  const barbers = JSON.parse(localStorage.getItem('loockingBarbers')) || [];
+  const services = JSON.parse(localStorage.getItem('loockingServices')) || [];
+  const barber = barbers.find(b => b.id === selectedBarberId);
+  const servicesText = services
+    .filter(s => newAppointment.serviceIds.includes(s.id))
+    .map(s => s.name)
+    .join(', ');
+
+  const overlayData = {
+    ...newAppointment,
+    barberName: barber?.name || 'N/A',
+    servicesText
+  };
+
+  showConfirmationOverlay(overlayData);
+  updateDashboard();
+
+  setTimeout(() => {
+    selectedBarberId = null;
+    selectedServices = [];
+    selectedDate = null;
+    currentStep = 1;
+    
+    document.getElementById('bookingDate').value = '';
+    document.getElementById('bookingTime').value = '';
+    document.getElementById('clientName').value = '';
+    document.getElementById('clientPhone').value = '';
+    document.getElementById('clientEmail').value = '';
+
+    renderBookingServices();
+    renderBookingBarbers();
+    updateAvailableTimes();
+    updateBookingSummary();
+
+    document.querySelectorAll('.booking-form-step').forEach(s => s.style.display = 'none');
+    document.querySelector('.booking-form-step[data-step="1"]').style.display = 'block';
+    
+    document.querySelectorAll('.booking-step').forEach((s, i) => {
+      s.classList.remove('active', 'completed');
+      if (i === 0) s.classList.add('active');
+    });
+
+    showToast('¡Cita agendada exitosamente!', 'success');
+  }, 2000);
+}
+
+// === GESTIÓN DE CITAS (ADMIN) ===
+function renderAppointments() {
+  const appointments = JSON.parse(localStorage.getItem('loockingAppointments')) || [];
+  const tbody = document.getElementById('appointmentsTbody');
+  
+  if (appointments.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">No hay citas registradas</td></tr>';
+    return;
+  }
+
+  const services = JSON.parse(localStorage.getItem('loockingServices')) || [];
+  const barbers = JSON.parse(localStorage.getItem('loockingBarbers')) || [];
+
+  tbody.innerHTML = '';
+  appointments.forEach(a => {
+    const barber = barbers.find(b => b.id === a.barberId);
+    const serviceNames = (a.serviceIds || [])
+      .map(id => {
+        const service = services.find(s => s.id === id);
+        return service ? service.name : '';
+      })
+      .filter(Boolean)
+      .join(', ');
+
+    const tr = document.createElement('tr');
+    const statusBadgeClass = a.status === 'confirmada' ? 'success' : 'danger';
+    const statusText = a.status.charAt(0).toUpperCase() + a.status.slice(1);
+    
+    tr.innerHTML = `
+      <td>${a.clientName}</td>
+      <td>${barber ? barber.name : 'N/A'}</td>
+      <td>${new Date(a.date).toLocaleDateString('es-ES')}</td>
+      <td>${a.time}</td>
+      <td>${a.clientPhone || ''}</td>
+      <td>
+        <span class="badge bg-${statusBadgeClass}" id="badge-${a.id}">
+          ${statusText}
+        </span>
+      </td>
+      <td>
+        <div class="btn-group btn-group-sm" role="group">
+          ${a.status === 'confirmada' ? `
+            <button class="btn btn-outline-warning" title="Cambiar a Cancelada" onclick="changeAppointmentStatus(${a.id}, 'cancelada')">
+              <i class="fas fa-times"></i> Cancelar
+            </button>
+          ` : `
+            <button class="btn btn-outline-success" title="Cambiar a Confirmada" onclick="changeAppointmentStatus(${a.id}, 'confirmada')">
+              <i class="fas fa-check"></i> Confirmar
+            </button>
+          `}
+          <button class="btn btn-outline-danger" title="Eliminar cita" onclick="deleteAppointment(${a.id})">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </td>
+    `;
+    
+    tbody.appendChild(tr);
+    
+    if (serviceNames) {
+      const serviceRow = document.createElement('tr');
+      serviceRow.innerHTML = `<td colspan="7" class="text-muted small"><i class="fas fa-cut"></i> ${serviceNames}</td>`;
+      tbody.appendChild(serviceRow);
+    }
+  });
+}
+
+// === CAMBIAR ESTADO DE CITA ===
+function changeAppointmentStatus(appointmentId, newStatus) {
+  const appointments = JSON.parse(localStorage.getItem('loockingAppointments')) || [];
+  const appointment = appointments.find(a => a.id === appointmentId);
+  
+  if (!appointment) {
+    showToast('Cita no encontrada', 'error');
+    return;
+  }
+
+  const oldStatus = appointment.status;
+  const statusMessage = newStatus === 'confirmada' ? 'confirmada' : 'cancelada';
+  
+  if (confirm(`¿Deseas cambiar el estado de la cita de ${appointment.clientName} a ${statusMessage}?`)) {
+    appointment.status = newStatus;
+    localStorage.setItem('loockingAppointments', JSON.stringify(appointments));
+    
+    // Actualizar vistas
+    renderAppointments();
+    updateDashboard();
+    initDashboardCharts();
+    renderRecentAppointments();
+    
+    const statusLabel = newStatus === 'confirmada' ? 'Confirmada' : 'Cancelada';
+    showToast(`Cita de ${appointment.clientName} ${statusLabel.toLowerCase()}`, 'success');
+  }
+}
+
+// === ELIMINAR CITA ===
+function deleteAppointment(appointmentId) {
+  const appointments = JSON.parse(localStorage.getItem('loockingAppointments')) || [];
+  const appointment = appointments.find(a => a.id === appointmentId);
+  
+  if (!appointment) {
+    showToast('Cita no encontrada', 'error');
+    return;
+  }
+
+  if (confirm(`¿Deseas eliminar la cita de ${appointment.clientName} del ${new Date(appointment.date).toLocaleDateString('es-ES')} a las ${appointment.time}?`)) {
+    let updatedAppointments = appointments.filter(a => a.id !== appointmentId);
+    localStorage.setItem('loockingAppointments', JSON.stringify(updatedAppointments));
+    
+    // Actualizar vistas
+    renderAppointments();
+    updateDashboard();
+    initDashboardCharts();
+    renderRecentAppointments();
+    
+    showToast(`Cita de ${appointment.clientName} eliminada`, 'success');
+  }
+}
+
+// === GESTIÓN DE CLIENTES (ADMIN) ===
+function renderClients() {
+  const clients = JSON.parse(localStorage.getItem('loockingClients')) || [];
+  const tbody = document.getElementById('clientsTbody');
+  
+  if (!tbody) return;
+
+  if (clients.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">No hay clientes registrados</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = '';
+  clients.forEach(c => {
+    const tr = document.createElement('tr');
+    const date = new Date(c.createdAt).toLocaleDateString('es-ES');
+    tr.innerHTML = `
+      <td><strong>${c.name}</strong></td>
+      <td>${c.phone}</td>
+      <td>${c.email}</td>
+      <td>${date}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// === CITAS RECIENTES ===
+function renderRecentAppointments() {
+  const appointments = JSON.parse(localStorage.getItem('loockingAppointments')) || [];
+  const tbody = document.getElementById('recentAppointmentsTbody');
+  
+  if (!tbody) return;
+
+  if (appointments.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">No hay citas registradas</td></tr>';
+    return;
+  }
+
+  const services = JSON.parse(localStorage.getItem('loockingServices')) || [];
+  const barbers = JSON.parse(localStorage.getItem('loockingBarbers')) || [];
+  
+  const recent = appointments.slice(-5).reverse();
+  tbody.innerHTML = '';
+  
+  recent.forEach(a => {
+    const barber = barbers.find(b => b.id === a.barberId);
+    const serviceNames = (a.serviceIds || [])
+      .map(id => {
+        const service = services.find(s => s.id === id);
+        return service ? service.name : '';
+      })
+      .filter(Boolean)
+      .join(', ');
+
+    const tr = document.createElement('tr');
+    const statusClass = a.status === 'confirmada' ? 'success' : 'danger';
+    
+    tr.innerHTML = `
+      <td>${a.clientName}</td>
+      <td>${barber ? barber.name : 'N/A'}</td>
+      <td>${serviceNames || 'N/A'}</td>
+      <td>${new Date(a.date).toLocaleDateString('es-ES')}</td>
+      <td>${a.time}</td>
+      <td><span class="badge bg-${statusClass}">${a.status}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// === ACTUALIZAR DASHBOARD ===
+function updateDashboard() {
+  const appointments = JSON.parse(localStorage.getItem('loockingAppointments')) || [];
+  const clients = JSON.parse(localStorage.getItem('loockingClients')) || [];
+  const services = JSON.parse(localStorage.getItem('loockingServices')) || [];
+  const barbers = JSON.parse(localStorage.getItem('loockingBarbers')) || [];
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const todayAppointments = appointments.filter(a => {
+    const apptDate = new Date(a.date);
+    apptDate.setHours(0, 0, 0, 0);
+    return apptDate.getTime() === today.getTime() && a.status === 'confirmada';
+  }).length;
+
+  const confirmedAppointments = appointments.filter(a => a.status === 'confirmada').length;
+  
+  // Calcular ingresos
+  const totalRevenue = appointments
+    .filter(a => a.status === 'confirmada')
+    .reduce((sum, a) => {
+      const serviceTotal = (a.serviceIds || []).reduce((ssum, sid) => {
+        const service = services.find(s => s.id === sid);
+        return ssum + (service ? service.price : 0);
+      }, 0);
+      return sum + serviceTotal;
+    }, 0);
+
+  const el = document.getElementById('totalAppointments');
+  if (el) el.textContent = confirmedAppointments;
+  
+  const el2 = document.getElementById('todayAppointments');
+  if (el2) el2.textContent = todayAppointments;
+  
+  const el3 = document.getElementById('totalRevenue');
+  if (el3) el3.textContent = totalRevenue.toLocaleString();
+  
+  const el4 = document.getElementById('totalClients');
+  if (el4) el4.textContent = clients.length;
+  
+  const el5 = document.getElementById('activeStaff');
+  if (el5) el5.textContent = barbers.length;
+  
+  const el6 = document.getElementById('staffBreakdown');
+  if (el6) el6.textContent = `${barbers.length} barbero${barbers.length !== 1 ? 's' : ''}`;
+
+  renderRecentAppointments();
+}
+
+// === GRÁFICOS DEL DASHBOARD ===
+function initDashboardCharts() {
+  const appointments = JSON.parse(localStorage.getItem('loockingAppointments')) || [];
+  const services = JSON.parse(localStorage.getItem('loockingServices')) || [];
+  const barbers = JSON.parse(localStorage.getItem('loockingBarbers')) || [];
+
+  // Destruir gráficos previos
+  Object.values(charts).forEach(chart => {
+    if (chart && typeof chart.destroy === 'function') {
+      chart.destroy();
+    }
+  });
+  charts = {};
+
+  // Gráfico 1: Citas por Barbero
+  const ctx1 = document.getElementById('appointmentsByBarberChart');
+  if (ctx1) {
+    const barberCounts = {};
+    barbers.forEach(b => {
+      barberCounts[b.id] = appointments.filter(a => a.barberId === b.id && a.status === 'confirmada').length;
+    });
+
+    charts.appointmentsByBarber = new Chart(ctx1, {
+      type: 'doughnut',
+      data: {
+        labels: barbers.map(b => b.name),
+        datasets: [{
+          data: barbers.map(b => barberCounts[b.id] || 0),
+          backgroundColor: ['#667eea', '#764ba2', '#f093fb'],
+          borderColor: 'white',
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom'
+          }
+        }
+      }
+    });
+  }
+
+  // Gráfico 2: Servicios Más Solicitados
+  const ctx2 = document.getElementById('topServicesChart');
+  if (ctx2) {
+    const serviceCounts = {};
+    appointments.forEach(a => {
+      (a.serviceIds || []).forEach(sid => {
+        serviceCounts[sid] = (serviceCounts[sid] || 0) + (a.status === 'confirmada' ? 1 : 0);
+      });
+    });
+
+    const topServices = services
+      .map(s => ({
+        name: s.name,
+        count: serviceCounts[s.id] || 0
+      }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
+    charts.topServices = new Chart(ctx2, {
+      type: 'bar',
+      data: {
+        labels: topServices.map(s => s.name),
+        datasets: [{
+          label: 'Cantidad de Solicitudes',
+          data: topServices.map(s => s.count),
+          backgroundColor: '#43e97b',
+          borderColor: '#38f9d7',
+          borderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        indexAxis: 'y',
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          x: {
+            beginAtZero: true,
+            ticks: { stepSize: 1 }
+          }
+        }
+      }
+    });
+  }
+
+  // Gráfico 3: Citas por Día (Última Semana)
+  const ctx3 = document.getElementById('appointmentsWeekChart');
+  if (ctx3) {
+    const weekData = {};
+    const today = new Date();
+    
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      const key = date.toLocaleDateString('es-ES', { weekday: 'short', day: '2-digit' });
+      weekData[key] = 0;
+    }
+
+    appointments.forEach(a => {
+      if (a.status === 'confirmada') {
+        const apptDate = new Date(a.date);
+        const key = apptDate.toLocaleDateString('es-ES', { weekday: 'short', day: '2-digit' });
+        if (key in weekData) {
+          weekData[key]++;
+        }
+      }
+    });
+
+    charts.appointmentsWeek = new Chart(ctx3, {
+      type: 'line',
+      data: {
+        labels: Object.keys(weekData),
+        datasets: [{
+          label: 'Citas',
+          data: Object.values(weekData),
+          borderColor: '#4facfe',
+          backgroundColor: 'rgba(79, 172, 254, 0.1)',
+          borderWidth: 2,
+          fill: true,
+          tension: 0.4,
+          pointBackgroundColor: '#4facfe',
+          pointBorderColor: '#00f2fe',
+          pointBorderWidth: 2
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { stepSize: 1 }
+          }
+        }
+      }
+    });
+  }
+
+  // Gráfico 4: Ingresos Mensuales
+  const ctx4 = document.getElementById('revenueMonthChart');
+  if (ctx4) {
+    const monthlyRevenue = {};
+    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    months.forEach(m => monthlyRevenue[m] = 0);
+
+    appointments.forEach(a => {
+      if (a.status === 'confirmada') {
+        const apptDate = new Date(a.date);
+        const monthIndex = apptDate.getMonth();
+        const revenue = (a.serviceIds || []).reduce((sum, sid) => {
+          const service = services.find(s => s.id === sid);
+          return sum + (service ? service.price : 0);
+        }, 0);
+        monthlyRevenue[months[monthIndex]] += revenue;
+      }
+    });
+
+    charts.revenueMonth = new Chart(ctx4, {
+      type: 'bar',
+      data: {
+        labels: months,
+        datasets: [{
+          label: 'Ingresos ($)',
+          data: Object.values(monthlyRevenue),
+          backgroundColor: '#f5576c',
+          borderColor: '#f093fb',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  }
+}
+
+// === CARGA DE FOTO DE BARBERO ===
+function handleBarberPhotoUpload(e) {
+  const file = e.target.files[0];
+  const maxSize = 5 * 1024 * 1024; // 5MB
+
+  if (!file) return;
+
+  if (file.size > maxSize) {
+    showToast('Archivo demasiado grande. Máximo 5MB.', 'error');
+    e.target.value = '';
+    return;
+  }
+
+  if (!['image/jpeg', 'image/jpg'].includes(file.type)) {
+    showToast('Solo se aceptan imágenes JPG/JPEG', 'error');
+    e.target.value = '';
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    const base64 = event.target.result;
+    document.getElementById('barberPhotoBase64').value = base64;
+    
+    const preview = document.getElementById('barberPhotoPreview');
+    preview.innerHTML = `
+      <div class="text-center">
+        <img src="${base64}" alt="Vista previa" style="max-width: 100%; max-height: 200px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <p class="text-muted mt-2 mb-0"><small>Nueva foto seleccionada</small></p>
+      </div>
+    `;
+
+    const status = document.getElementById('barberPhotoStatus');
+    status.innerHTML = '<i class="fas fa-check" style="color: var(--success);"></i>';
+  };
+  reader.readAsDataURL(file);
+}
+
+// === GUARDAR BARBERO ===
+function saveBarber() {
+  const name = document.getElementById('barberName').value.trim();
+  const phone = document.getElementById('barberPhone').value.trim();
+  const specialty = document.getElementById('barberSpecialty').value;
+  const photoBase64 = document.getElementById('barberPhotoBase64').value;
+
+  if (!name || !phone || !specialty) {
+    showToast('Completa todos los campos obligatorios', 'error');
+    return;
+  }
+
+  let barbers = JSON.parse(localStorage.getItem('loockingBarbers')) || [];
+
+  if (editingBarberId) {
+    const idx = barbers.findIndex(b => b.id === editingBarberId);
+    if (idx !== -1) {
+      barbers[idx] = {
+        id: editingBarberId,
+        name,
+        phone,
+        specialty,
+        photo: photoBase64 || barbers[idx].photo
+      };
+    }
+  } else {
+    const newId = barbers.length ? Math.max(...barbers.map(b => b.id)) + 1 : 1;
+    barbers.push({
+      id: newId,
+      name,
+      phone,
+      specialty,
+      photo: photoBase64 || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=c19b76&color=fff&size=400`
+    });
+  }
+
+  localStorage.setItem('loockingBarbers', JSON.stringify(barbers));
+  bootstrap.Modal.getInstance(document.getElementById('barberModal'))?.hide();
+  editingBarberId = null;
+
+  // Actualización inmediata
+  triggerLocalUpdate('loockingBarbers');
+  showToast('Personal guardado exitosamente', 'success');
+}
+  </script>
+</body>
+</html>
